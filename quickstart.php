@@ -67,6 +67,7 @@ function get_from_pcl(){
   $range = 'Form Responses 1';
   $response = $service->spreadsheets_values->get($spreadsheetId, $range);
   $values = $response->getValues();
+  $arr = array();
   return $values;
 }
 
@@ -94,4 +95,135 @@ function get_from_editor(){
   return $values;
 }
 
-echo get_from_pml();
+//mengambil jumlah record dari form pcl berdasarkan filter wilayah -> digunakan untuk membuat grafik
+//input berupa string nama kabupaten, kecamatan, desa, dan nks
+//output berupa angka numeric
+function get_progres_pcl($kab, $kec = NULL, $desa = NULL, $nks = NULL){
+  $values = get_from_pcl();
+  if(!is_null($kab)){
+    $filter_values_kab = array_filter($values, function($var) use ($kab){
+      return (strpos($var[4],$kab)!==false);
+    });
+    if(!is_null($kec)){
+      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
+        return (strpos($var[5],$kec)!==false);
+      });
+      if(!is_null($desa)){
+        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
+          return (strpos($var[6],$desa)!==false);
+        });
+        if(!is_null($nks)){
+          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
+            return (strpos($var[7],$nks)!==false);
+          });
+          $filter_values = count($filter_values_nks);
+        }else{
+          $filter_values = count($filter_values_desa);
+        }
+      }else{
+        $filter_values = count($filter_values_kec);
+      }
+    }else{
+      $filter_values = count($filter_values_kab);
+    }
+  }else{
+    $filter_values = NULL;
+  }
+  return $filter_values;
+}
+
+//mengambil jumlah record dari form pml berdasarkan filter wilayah -> digunakan untuk membuat grafik
+//input berupa string nama kabupaten, kecamatan, desa, dan nks
+//output berupa angka numeric
+function get_progres_pml($kab, $kec = NULL, $desa = NULL, $nks = NULL){
+  $values = get_from_pml();
+  if(!is_null($kab)){
+    $filter_values_kab = array_filter($values, function($var) use ($kab){
+      return (strpos($var[3],$kab)!==false);
+    });
+    if(!is_null($kec)){
+      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
+        return (strpos($var[4],$kec)!==false);
+      });
+      if(!is_null($desa)){
+        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
+          return (strpos($var[5],$desa)!==false);
+        });
+        if(!is_null($nks)){
+          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
+            return (strpos($var[6],$nks)!==false);
+          });
+          $filter_values = count($filter_values_nks);
+        }else{
+          $filter_values = count($filter_values_desa);
+        }
+      }else{
+        $filter_values = count($filter_values_kec);
+      }
+    }else{
+      $filter_values = count($filter_values_kab);
+    }
+  }else{
+    $filter_values = NULL;
+  }
+  return $filter_values;
+}
+
+//mengambil jumlah record dari form editor berdasarkan filter wilayah -> digunakan untuk membuat grafik
+//input berupa string nama kabupaten, kecamatan, desa, dan nks
+//output berupa angka numeric
+function get_progres_editor($kab, $kec = NULL, $desa = NULL, $nks = NULL){
+  $values = get_from_editor();
+  if(!is_null($kab)){
+    $filter_values_kab = array_filter($values, function($var) use ($kab){
+      return (strpos($var[4],$kab)!==false);
+    });
+    if(!is_null($kec)){
+      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
+        return (strpos($var[5],$kec)!==false);
+      });
+      if(!is_null($desa)){
+        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
+          return (strpos($var[6],$desa)!==false);
+        });
+        if(!is_null($nks)){
+          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
+            return (strpos($var[7],$nks)!==false);
+          });
+          $filter_values = count($filter_values_nks);
+        }else{
+          $filter_values = count($filter_values_desa);
+        }
+      }else{
+        $filter_values = count($filter_values_kec);
+      }
+    }else{
+      $filter_values = count($filter_values_kab);
+    }
+  }else{
+    $filter_values = NULL;
+  }
+  return $filter_values;
+}
+
+// $values = get_from_pcl();
+// $a = $values[4];
+// $b = array_count_values($a);
+// // print_r($values[4]);
+// $coba = array_filter($values, function($var){
+//   return (strpos($var[4],'Tana Tidung')!==false);
+// });
+// print_r($coba);
+// $c = array_keys($b);
+// for ($i=0;$i<=count($b);$i++){
+//
+// }
+// echo $c[3];
+
+// echo $b[2];
+// $c = count($b);
+// for ($i=0;$i<4;$i++){
+//   for ($j=0;$j<4;$j++){
+//
+//   }
+// }
