@@ -95,36 +95,79 @@ function get_from_editor(){
   return $values;
 }
 
-//mengambil jumlah record dari form pcl berdasarkan filter wilayah -> digunakan untuk membuat grafik
-//input berupa string nama kabupaten, kecamatan, desa, dan nks
-//output berupa angka numeric
-function get_progres_pcl($kab, $kec = NULL, $desa = NULL, $nks = NULL){
-  $values = get_from_pcl();
+function transposeData($data)
+{
+  $retData = array();
+    foreach ($data as $row => $columns) {
+      foreach ($columns as $row2 => $column2) {
+          $retData[$row2][$row] = $column2;
+      }
+    }
+  return $retData;
+}
+
+function name_array($values){
+  $t = transposeData($values);
+  $result = array_column($t, null, '0');
+  foreach ($result as $key => $subArr) {
+      unset($subArr['0']);
+      $result[$key] = $subArr;
+  }
+  return $result;
+}
+
+//mengambil record dari form pcl berdasarkan filter wilayah -> digunakan untuk membuat grafik
+//input berupa string tingkatan, nama kabupaten, kecamatan, desa, dan nks
+// input tingkatan jika 1 -> pcl, 2 -> pml, 3 -> editor
+//output berupa array, jika mau menghitung jumlahnya menggunakan fungsi count()
+function get_filter_wilayah($tingkatan, $kab, $kec = NULL, $desa = NULL, $nks = NULL){
+  if ($tingkatan == 1){
+    $values = get_from_pcl();
+    $kab_filter = 4;
+    $kec_filter = 5;
+    $desa_filter = 6;
+    $nks_filter = 7;
+  }
+  if ($tingkatan == 2){
+    $values = get_from_pml();
+    $kab_filter = 3;
+    $kec_filter = 4;
+    $desa_filter = 5;
+    $nks_filter = 6;
+  }
+  if ($tingkatan == 3){
+    $values = get_from_editor();
+    $kab_filter = 4;
+    $kec_filter = 5;
+    $desa_filter = 6;
+    $nks_filter = 7;
+  }
+  // $values = name_array($values);
   if(!is_null($kab)){
-    $filter_values_kab = array_filter($values, function($var) use ($kab){
-      return (strpos($var[4],$kab)!==false);
+    $filter_values_kab = array_filter($values, function($var) use ($kab_filter,$kab){
+      return (strpos($var[$kab_filter],$kab)!==false);
     });
     if(!is_null($kec)){
-      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
-        return (strpos($var[5],$kec)!==false);
+      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec_filter,$kec){
+        return (strpos($var[$kec_filter],$kec)!==false);
       });
       if(!is_null($desa)){
-        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
-          return (strpos($var[6],$desa)!==false);
+        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa_filter,$desa){
+          return (strpos($var[$desa_filter],$desa)!==false);
         });
         if(!is_null($nks)){
-          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
-            return (strpos($var[7],$nks)!==false);
+          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks_filter,$nks){
+            return (strpos($var[$nks_filter],$nks)!==false);
           });
-          $filter_values = count($filter_values_nks);
+          $filter_values = $filter_values_nks;
         }else{
-          $filter_values = count($filter_values_desa);
+          $filter_values = $filter_values_desa;
         }
       }else{
-        $filter_values = count($filter_values_kec);
+        $filter_values = $filter_values_kec;
       }
     }else{
-      $filter_values = count($filter_values_kab);
+      $filter_values = $filter_values_kab;
     }
   }else{
     $filter_values = NULL;
@@ -132,98 +175,95 @@ function get_progres_pcl($kab, $kec = NULL, $desa = NULL, $nks = NULL){
   return $filter_values;
 }
 
-//mengambil jumlah record dari form pml berdasarkan filter wilayah -> digunakan untuk membuat grafik
-//input berupa string nama kabupaten, kecamatan, desa, dan nks
-//output berupa angka numeric
-function get_progres_pml($kab, $kec = NULL, $desa = NULL, $nks = NULL){
-  $values = get_from_pml();
-  if(!is_null($kab)){
-    $filter_values_kab = array_filter($values, function($var) use ($kab){
-      return (strpos($var[3],$kab)!==false);
-    });
-    if(!is_null($kec)){
-      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
-        return (strpos($var[4],$kec)!==false);
-      });
-      if(!is_null($desa)){
-        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
-          return (strpos($var[5],$desa)!==false);
-        });
-        if(!is_null($nks)){
-          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
-            return (strpos($var[6],$nks)!==false);
-          });
-          $filter_values = count($filter_values_nks);
+//fungsi untuk mendapatkan jumlah progres tiap wilayah
+//input $tingkatan = numeric 1,2,3 -> 1 pcl, 2 pml, 3 editor, untuk variabel lain bertipe string
+//output berupa 2 dimensional array array[0][] -> nama, array[1][] -> jumlahnya
+function get_progress($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa = NULL){
+  if ($tingkatan == 1){
+    $values = get_from_pcl();
+  }
+  if ($tingkatan == 2){
+    $values = get_from_pml();
+  }
+  if ($tingkatan == 3){
+    $values = get_from_editor();
+  }
+  $t = name_array($values);
+  if ($prov == TRUE){
+    if (!is_null($kab)){
+      if (!is_null($kec)){
+        if (!is_null($desa)){
+          $progres_desa = array();
+            $filter_desa = get_filter_wilayah($tingkatan,$kab,$kec,$desa);
+            if (!is_null($filter_desa)){
+              $t = transposeData($filter_desa);
+          //get nama desa
+              if($tingkatan == 2){
+                $a = array_unique($t[6]);
+              }else{
+                $a = array_unique($t[7]);
+              }
+              sort($a);
+              $i = 0;
+              for($i==0;$i<count($a);$i++){
+                $progres_desa[$i] = get_filter_wilayah($tingkatan,$kab,$kec,$desa,$a[$i]);
+                $progres_desa[$i] = count($progres_desa[$i]);
+              }
+              $gabung = array($a,$progres_desa);
+            }else{
+              $gabung = array(null,null);
+            }
         }else{
-          $filter_values = count($filter_values_desa);
+          $progres_kec = array();
+            $filter_kec = get_filter_wilayah($tingkatan,$kab,$kec);
+            if (!is_null($filter_kec)){
+              $t = transposeData($filter_kec);
+          //get nama desa
+              if($tingkatan == 2){
+                $a = array_unique($t[5]);
+              }else{
+                $a = array_unique($t[6]);
+              }
+              sort($a);
+              $i = 0;
+              for($i==0;$i<count($a);$i++){
+                $progres_kec[$i] = get_filter_wilayah($tingkatan,$kab,$kec,$a[$i]);
+                $progres_kec[$i] = count($progres_kec[$i]);
+              }
+              $gabung = array($a,$progres_kec);
+            }else{
+              $gabung = array(null,null);
+            }
         }
       }else{
-        $filter_values = count($filter_values_kec);
-      }
-    }else{
-      $filter_values = count($filter_values_kab);
-    }
-  }else{
-    $filter_values = NULL;
-  }
-  return $filter_values;
-}
-
-//mengambil jumlah record dari form editor berdasarkan filter wilayah -> digunakan untuk membuat grafik
-//input berupa string nama kabupaten, kecamatan, desa, dan nks
-//output berupa angka numeric
-function get_progres_editor($kab, $kec = NULL, $desa = NULL, $nks = NULL){
-  $values = get_from_editor();
-  if(!is_null($kab)){
-    $filter_values_kab = array_filter($values, function($var) use ($kab){
-      return (strpos($var[4],$kab)!==false);
-    });
-    if(!is_null($kec)){
-      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
-        return (strpos($var[5],$kec)!==false);
-      });
-      if(!is_null($desa)){
-        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
-          return (strpos($var[6],$desa)!==false);
-        });
-        if(!is_null($nks)){
-          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
-            return (strpos($var[7],$nks)!==false);
-          });
-          $filter_values = count($filter_values_nks);
+        $progres_kab = array();
+        $filter_kab = get_filter_wilayah($tingkatan,$kab);
+        $t = transposeData($filter_kab);
+        //get nama kecamatan
+        if($tingkatan == 2){
+          $a = array_unique($t[4]);
         }else{
-          $filter_values = count($filter_values_desa);
+          $a = array_unique($t[5]);
         }
-      }else{
-        $filter_values = count($filter_values_kec);
+        sort($a);
+        $i = 0;
+        for($i==0;$i<count($a);$i++){
+          $progres_kab[$i] = get_filter_wilayah($tingkatan,$kab,$a[$i]);
+          $progres_kab[$i] = count($progres_kab[$i]);
+        }
+        $gabung = array($a,$progres_kab);
       }
-    }else{
-      $filter_values = count($filter_values_kab);
+      }else{
+        $progres_prov = array();
+        $a = array_unique($t['Kabupaten']);
+        sort($a);
+        $i = 0;
+        for($i==0;$i<count($a);$i++){
+          $progres_prov[$i] = get_filter_wilayah($tingkatan,$a[$i]);
+          $progres_prov[$i] = count($progres_prov[$i]);
+        }
+        $gabung = array($a,$progres_prov);
+      }
     }
-  }else{
-    $filter_values = NULL;
+    return $gabung;
   }
-  return $filter_values;
-}
-
-// $values = get_from_pcl();
-// $a = $values[4];
-// $b = array_count_values($a);
-// // print_r($values[4]);
-// $coba = array_filter($values, function($var){
-//   return (strpos($var[4],'Tana Tidung')!==false);
-// });
-// print_r($coba);
-// $c = array_keys($b);
-// for ($i=0;$i<=count($b);$i++){
-//
-// }
-// echo $c[3];
-
-// echo $b[2];
-// $c = count($b);
-// for ($i=0;$i<4;$i++){
-//   for ($j=0;$j<4;$j++){
-//
-//   }
-// }
