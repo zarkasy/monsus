@@ -15,7 +15,7 @@ function getClient()
     $client->setApplicationName('Google Sheets API PHP Quickstart');
     $client->setScopes(Google_Service_Sheets::SPREADSHEETS_READONLY);
     $client->setAuthConfig('credentials.json');
-    $client->setAccessType('offline');
+    $client->setAccessType('online');
     $client->setPrompt('select_account consent');
 
     // Load previously authorized token from a file, if it exists.
@@ -63,7 +63,7 @@ function get_from_pcl(){
   // Get the API client and construct the service object.
   $client = getClient();
   $service = new Google_Service_Sheets($client);
-  $spreadsheetId = '1PLMQLSV2tVlMLVrfmeJsZy19F4NgUQt1YHVjPDmuNtc';
+  $spreadsheetId = '11i6ghiytWv23Tc1BWNKw9XGhSSya3HMT0vGGb9Hwibk';
   $range = 'Form Responses 1';
   $response = $service->spreadsheets_values->get($spreadsheetId, $range);
   $values = $response->getValues();
@@ -76,7 +76,7 @@ function get_from_pml(){
   // Get the API client and construct the service object.
   $client = getClient();
   $service = new Google_Service_Sheets($client);
-  $spreadsheetId = '1rMDy_r0f531EVwzb5bYC5ohzrPs7FYgMdS-JwbFIGMo';
+  $spreadsheetId = '1mb9HpWvawxWB3hp6d9s23zZlIS7cum_Yqo8KQOdqobk';
   $range = 'Form Responses 1';
   $response = $service->spreadsheets_values->get($spreadsheetId, $range);
   $values = $response->getValues();
@@ -88,7 +88,7 @@ function get_from_editor(){
   // Get the API client and construct the service object.
   $client = getClient();
   $service = new Google_Service_Sheets($client);
-  $spreadsheetId = '1xa9-dQJytnwAI90SJLxUeVwFAxy86JMx7lJ2kB4POb0';
+  $spreadsheetId = '1i-kbLVvz2hWfyUzEVGMP6hMsEYZ48Tf-ITfUs-dP2DU';
   $range = 'Form Responses 1';
   $response = $service->spreadsheets_values->get($spreadsheetId, $range);
   $values = $response->getValues();
@@ -120,57 +120,81 @@ function name_array($values){
 //input berupa string tingkatan, nama kabupaten, kecamatan, desa, dan nks
 // input tingkatan jika 1 -> pcl, 2 -> pml, 3 -> editor
 //output berupa array, jika mau menghitung jumlahnya menggunakan fungsi count()
-function get_filter_wilayah($tingkatan, $kab, $kec = NULL, $desa = NULL, $nks = NULL){
+// function get_filter_wilayah($tingkatan, $kab, $kec = NULL, $desa = NULL, $nks = NULL){
+//   if ($tingkatan == 1){
+//     $values = get_from_pcl();
+//   }
+//   if ($tingkatan == 2){
+//     $values = get_from_pml();
+//   }
+//   if ($tingkatan == 3){
+//     $values = get_from_editor();
+//   }
+//   if(!is_null($kab)){
+//     $filter_values_kab = array_filter($values, function($var) use ($kab){
+//       return (strpos($var[4],$kab)!==false);
+//     });
+//     if(!is_null($kec)){
+//       $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec){
+//         return (strpos($var[5],$kec)!==false);
+//       });
+//       if(!is_null($desa)){
+//         $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa){
+//           return (strpos($var[6],$desa)!==false);
+//         });
+//         if(!is_null($nks)){
+//           $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks){
+//             return (strpos($var[7],$nks)!==false);
+//           });
+//           $filter_values = $filter_values_nks;
+//         }else{
+//           $filter_values = $filter_values_desa;
+//         }
+//       }else{
+//         $filter_values = $filter_values_kec;
+//       }
+//     }else{
+//       $filter_values = $filter_values_kab;
+//     }
+//   }else{
+//     $filter_values = NULL;
+//   }
+//   return $filter_values;
+// }
+function get_filter_wilayah($tingkatan, $kab = NULL, $kec = NULL, $desa = NULL, $nks = NULL, $noruta = NULL){
   if ($tingkatan == 1){
-    $values = get_from_pcl();
-    $kab_filter = 4;
-    $kec_filter = 5;
-    $desa_filter = 6;
-    $nks_filter = 7;
+    $filter_values = get_from_pcl();
   }
   if ($tingkatan == 2){
-    $values = get_from_pml();
-    $kab_filter = 3;
-    $kec_filter = 4;
-    $desa_filter = 5;
-    $nks_filter = 6;
+    $filter_values = get_from_pml();
   }
   if ($tingkatan == 3){
-    $values = get_from_editor();
-    $kab_filter = 4;
-    $kec_filter = 5;
-    $desa_filter = 6;
-    $nks_filter = 7;
+    $filter_values = get_from_editor();
   }
-  // $values = name_array($values);
   if(!is_null($kab)){
-    $filter_values_kab = array_filter($values, function($var) use ($kab_filter,$kab){
-      return (strpos($var[$kab_filter],$kab)!==false);
+    $filter_values = array_filter($filter_values, function($var) use ($kab){
+      return (strpos($var[4],$kab)!==false);
     });
-    if(!is_null($kec)){
-      $filter_values_kec = array_filter($filter_values_kab, function($var) use ($kec_filter,$kec){
-        return (strpos($var[$kec_filter],$kec)!==false);
-      });
-      if(!is_null($desa)){
-        $filter_values_desa = array_filter($filter_values_kec, function($var) use ($desa_filter,$desa){
-          return (strpos($var[$desa_filter],$desa)!==false);
-        });
-        if(!is_null($nks)){
-          $filter_values_nks = array_filter($filter_values_desa, function($var) use ($nks_filter,$nks){
-            return (strpos($var[$nks_filter],$nks)!==false);
-          });
-          $filter_values = $filter_values_nks;
-        }else{
-          $filter_values = $filter_values_desa;
-        }
-      }else{
-        $filter_values = $filter_values_kec;
-      }
-    }else{
-      $filter_values = $filter_values_kab;
-    }
-  }else{
-    $filter_values = NULL;
+  }
+  if(!is_null($kec)){
+    $filter_values = array_filter($filter_values, function($var) use ($kec){
+      return (strpos($var[5],$kec)!==false);
+    });
+  }
+  if(!is_null($desa)){
+    $filter_values = array_filter($filter_values, function($var) use ($desa){
+      return (strpos($var[6],$desa)!==false);
+    });
+  }
+  if(!is_null($nks)){
+    $filter_values = array_filter($filter_values, function($var) use ($nks){
+      return (strpos($var[7],$nks)!==false);
+    });
+  }
+  if(!is_null($noruta)){
+    $filter_values = array_filter($filter_values, function($var) use ($noruta){
+      return (strpos($var[8],$noruta)!==false);
+    });
   }
   return $filter_values;
 }
@@ -178,7 +202,7 @@ function get_filter_wilayah($tingkatan, $kab, $kec = NULL, $desa = NULL, $nks = 
 //fungsi untuk mendapatkan jumlah progres tiap wilayah
 //input $tingkatan = numeric 1,2,3 -> 1 pcl, 2 pml, 3 editor, untuk variabel lain bertipe string
 //output berupa 2 dimensional array array[0][] -> nama, array[1][] -> jumlahnya
-function get_progress($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa = NULL){
+function get_progress_wilayah($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa = NULL){
   if ($tingkatan == 1){
     $values = get_from_pcl();
   }
@@ -198,11 +222,7 @@ function get_progress($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa 
             if (!is_null($filter_desa)){
               $t = transposeData($filter_desa);
           //get nama desa
-              if($tingkatan == 2){
-                $a = array_unique($t[6]);
-              }else{
-                $a = array_unique($t[7]);
-              }
+              $a = array_unique($t[7]);
               sort($a);
               $i = 0;
               for($i==0;$i<count($a);$i++){
@@ -219,11 +239,7 @@ function get_progress($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa 
             if (!is_null($filter_kec)){
               $t = transposeData($filter_kec);
           //get nama desa
-              if($tingkatan == 2){
-                $a = array_unique($t[5]);
-              }else{
-                $a = array_unique($t[6]);
-              }
+              $a = array_unique($t[6]);
               sort($a);
               $i = 0;
               for($i==0;$i<count($a);$i++){
@@ -240,11 +256,7 @@ function get_progress($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa 
         $filter_kab = get_filter_wilayah($tingkatan,$kab);
         $t = transposeData($filter_kab);
         //get nama kecamatan
-        if($tingkatan == 2){
-          $a = array_unique($t[4]);
-        }else{
-          $a = array_unique($t[5]);
-        }
+        $a = array_unique($t[5]);
         sort($a);
         $i = 0;
         for($i==0;$i<count($a);$i++){
@@ -267,3 +279,51 @@ function get_progress($tingkatan, $prov = TRUE, $kab = NULL, $kec = NULL, $desa 
     }
     return $gabung;
   }
+
+//output -> jumlah yang sama
+//filter perbandingan variabel per wilayah antara pcl dan pml
+//input variabel berupa index yang sesuai dengan index kolom di excel
+function get_filter_pclpml($variabel = NULL, $kab = NULL, $kec = NULL, $desa = NULL, $nks = NULL){
+  $filter_values_pcl = get_filter_wilayah(1, $kab, $kec, $desa, $nks);
+  $filter_values_pml = get_filter_wilayah(2, $kab, $kec, $desa, $nks);
+  $t_pcl = transposeData($filter_values_pcl);
+  $t_pml = transposeData($filter_values_pml);
+  $unique_noruta_pcl = array_unique($t_pcl[8]);
+  $unique_noruta_pml = array_unique($t_pml[8]);
+  sort($unique_noruta_pcl);
+  sort($unique_noruta_pml);
+
+  $i = 0;
+  $banding = array();
+  for ($i=0;$i<count($unique_noruta_pcl);$i++){
+    $temp_pcl = get_filter_wilayah(1, $kab, $kec, $desa, $nks, $unique_noruta_pcl[$i]);
+    $temp_pcl = transposeData($temp_pcl);
+    $temp_pcl = implode($temp_pcl[$variabel]);
+    $temp_pml = get_filter_wilayah(2, $kab, $kec, $desa, $nks, $unique_noruta_pml[$i]);
+    $temp_pml = transposeData($temp_pml);
+    $temp_pml = implode($temp_pml[$variabel]);
+    if($temp_pcl == $temp_pml){
+      $banding[$i] = 1;
+    }else{
+      $banding[$i] = 0;
+    }
+  }
+  $jml_banding = array_sum($banding);
+  return $jml_banding;
+}
+
+//progres perbandingan isian pcl dan pml berdasarkan tingkatan dan $variabel
+//input variabel berupa index yang sesuai dengan index kolom di excel
+//output berupa array -> belum fix
+function get_progress_pclpml($variabel, $kab, $kec = NULL, $desa = NULL){
+  $filter_values_pcl = get_filter_wilayah(1, $kab = $kab, $kec = $kec, $desa = $desa);
+  $t_pcl = transposeData($filter_values_pcl);
+  $unique_nks_pcl = array_unique($t_pcl[7]);
+  $i = 0;
+  $progres = array();
+  for($i=0;$i<count($unique_nks_pcl);$i++){
+    $temp_progres = get_filter_pclpml($variabel, $kab, $kec, $desa, $unique_nks_pcl[$i]);
+    $progres[$i] = $temp_progres;
+  }
+  return $progres;
+}
