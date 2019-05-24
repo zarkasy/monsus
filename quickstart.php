@@ -96,8 +96,8 @@ function get_from_editor(){
 }
 
 function get_unique_rows($rows){
-  $copy = $rows;
-  for($i=0; $i<count($rows); $i++){
+	$copy = $rows;
+	for($i=0; $i<count($rows); $i++){
 	  $duplicate_index = array();
 	  for($j=0; $j<count($copy); $j++){
 		  $row1 = $rows[$i];
@@ -108,13 +108,14 @@ function get_unique_rows($rows){
 			  array_push($duplicate_index, $j);
 		  }
 	  } 
+	  $duplicate_index = array_reverse($duplicate_index);
 	  if(count($duplicate_index) > 1){
-	  	for($k=0; $k<count($duplicate_index); $k++){
-	 		unset($copy, $duplicate_index[$k]); 
+	  	for($k=1; $k<count($duplicate_index); $k++){
+	 		array_splice($copy, $duplicate_index[$k], 1); 
 		  }
-		$copy = array_values($copy);
 	  }
   }
+  return $copy;
 }
 
 function transposeData($data)
